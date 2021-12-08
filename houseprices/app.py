@@ -44,14 +44,8 @@ class App():
     def _removeSkewness(self):
         # Store target variable and remove skewness
         target = self._train_df['SalePrice']
-        plt.hist(target)
-        plt.show()
         del self._train_df['SalePrice']
-
         self._yTrain = np.log(target)
-        plt.hist(self._yTrain)
-        plt.xlabel('SalePrice')
-        plt.show()
 
     def _dummyCreate(self):
         # Create dummy variables for the categorical features and handle the missing values
@@ -66,15 +60,6 @@ class App():
         pca = decomposition.PCA()
         pca.fit(self._xTrain)
 
-        fig = plt.figure(1, figsize=(4, 3))
-
-        plt.clf()
-        plt.axes([.2, .2, .7, .7])
-        plt.plot(pca.explained_variance_, linewidth=2)
-        plt.axis('tight')
-        plt.xlabel('n_components')
-        plt.ylabel('explained_variance_')
-        plt.show()
 
         train_pca = pca.transform(self._xTrain)
         test_pca = pca.transform(self._xTest)

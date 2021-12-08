@@ -22,8 +22,10 @@ import inspect
 import ast
 import cloudpickle
 
+# Simple persistency for built entities
 datasets = {}
 models = {}
+
 
 class Layer:
     entities = []
@@ -152,7 +154,6 @@ def model(name):
 
         wrapped._type = "model"
         wrapped._name = name
-        source = inspect.getsource(func)
 
         return wrapped
 
