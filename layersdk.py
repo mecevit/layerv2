@@ -62,14 +62,20 @@ class Layer:
         print(f"--- Layer Infra: Run Complete! ---")
 
     def get_dataset(self, name):
+        return self.get_entity(name)
+
+    def get_model(self, name):
+        return self.get_entity(name)
+
+    def get_entity(self, name):
         for entity in self.entities.values():
             if entity.name == name:
                 return entity
-        raise Exception(f"Entity '{name}' not found!")
+            raise Exception(f"Entity '{name}' not found!")
+
 
 
 class Model:
-    result = None
 
     def __init__(self, func):
         if func:
@@ -79,20 +85,20 @@ class Model:
 
     def run(self):
         new_func = pickle.loads(self.pickled_func)
-        self.result = new_func()
+        result = new_func()
+        models[self.name] = result
 
     def get_train(self):
         return self.get_entity()
 
     def get_entity(self):
-        if self.name in datasets:
+        if self.name in models:
             return models[self.name]
         else:
             raise Exception(f"Entity {self.name} is not built!")
 
 
 class Dataset:
-    result = None
 
     def __init__(self, func):
         if func:
