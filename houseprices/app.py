@@ -1,17 +1,17 @@
 # Original Repo:
 # https://github.com/tiwari91/Housing-Prices
 
-from layer import Layer, dataset, model
+from layersdk import Layer, dataset, model
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import cross_val_score
 from sklearn import decomposition
 
+
 class App():
-    def __init__(self, file_train, file_test, layer:Layer):
+    def __init__(self, file_train, file_test, layer: Layer):
         self.file_train = file_train
         self.file_test = file_test
         self.layer = layer
@@ -59,7 +59,6 @@ class App():
     def _pcaLassoRegr(self):
         pca = decomposition.PCA()
         pca.fit(self._xTrain)
-
 
         train_pca = pca.transform(self._xTrain)
         test_pca = pca.transform(self._xTest)

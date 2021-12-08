@@ -1,4 +1,4 @@
-from layer import dataset, model, Layer
+from layersdk import dataset, model, Layer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -71,7 +71,8 @@ layer = Layer(project_name="ltv_project", environment='requirements.txt')
 
 
 # ++ To run the whole project on Layer Infra
-layer.run([read_and_clean_dataset, extract_features, train])
+layer.run([read_and_clean_dataset, extract_features])
+layer.run([train])
 # layer.run([build_dummy, train, read_and_clean_dataset, extract_features])
 
 # ++ To train model on Layer infra

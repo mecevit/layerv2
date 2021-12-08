@@ -1,25 +1,6 @@
-#
-# source = inspect.getsource(train)
-# parsed = ast.parse(source)
-
-# for node in ast.walk(parsed):
-#     if isinstance(node,ast.Call):
-#         if isinstance(node.func, ast.Attribute):
-#             if (node.func.value.id == 'layer'):
-#                     if(node.func.attr == 'get_dataset'):
-#                         print(ast.dump(node))
-#                         print(node.args[0].value)
-
-
-# ast.dump(parsed)
 import pickle
 
-import pandas as pd
-import inspect
 import os
-import sys
-import inspect
-import ast
 import cloudpickle
 
 # Simple persistency for built entities
@@ -28,7 +9,7 @@ models = {}
 
 
 class Layer:
-    entities = []
+    entities = {}
     entity_context = None
 
     def __init__(self, project_name, environment=None):
@@ -54,26 +35,34 @@ class Layer:
     def log(self, message):
         print(f"\t{Layer.entity_context} > {message}")
 
+    def add_entity(self, entity):
+        if not hasattr(entity, '_type'):
+            raise Exception(f"Function {entity} is not decoratored!")
+        elif entity._type == "dataset":
+            ent = Dataset(entity)
+            self.entities[entity._name] = ent
+            return ent
+        elif entity._type == "model":
+            ent = Model(entity)
+            self.entities[entity._name] = ent
+            return ent
+
     def run(self, entities):
-        self.entities = []
-        for entity in entities:
-            if not hasattr(entity, '_type'):
-                raise Exception(f"Function {entity} is not decoratored!")
-            elif entity._type == "dataset":
-                self.entities.append(Dataset(entity))
-            elif entity._type == "model":
-                self.entities.append(Model(entity))
-
         print(f"--- Layer Infra: Running Project: {self.project_name} ---")
-
         self.setup()
 
-        for entity in self.entities:
-            entity.run()
-        print(f"\n--- Layer Infra: Run Complete! ---")
+        if isinstance(entities, list):
+            for entity in entities:
+                ent = self.add_entity(entity)
+                ent.run()
+        else:
+            ent = self.add_entity(entities)
+            ent.run()
+
+        print(f"--- Layer Infra: Run Complete! ---")
 
     def get_dataset(self, name):
-        for entity in self.entities:
+        for entity in self.entities.values():
             if entity.name == name:
                 return entity
         raise Exception(f"Entity '{name}' not found!")
@@ -130,7 +119,7 @@ def dataset(name):
     def inner(func):
         def wrapped(*args, **kwargs):
             Layer.entity_context = name
-            print(f'\nBuilding {Layer.entity_context}...')
+            print(f'* Building {Layer.entity_context}...')
             res = func(*args, **kwargs)
             # TODO save returning entity to catalog
             return res
@@ -147,7 +136,7 @@ def model(name):
     def inner(func):
         def wrapped(*args, **kwargs):
             Layer.entity_context = name
-            print(f'\nTraining {Layer.entity_context}...')
+            print(f'* Training {Layer.entity_context}...')
             res = func(*args, **kwargs)
             # TODO save returning entity to catalog
             return res
