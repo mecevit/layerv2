@@ -35,6 +35,10 @@ class Layer:
     def log(self, message):
         print(f"\t{Layer.entity_context} > {message}")
 
+    def list_entities(self):
+        for ds in self.entities:
+            print('\t'+ds)
+
     def add_entity(self, entity):
         if not hasattr(entity, '_type'):
             raise Exception(f"Function {entity} is not decoratored!")
@@ -68,10 +72,10 @@ class Layer:
         return self.get_entity(name)
 
     def get_entity(self, name):
-        for entity in self.entities.values():
-            if entity.name == name:
-                return entity
-            raise Exception(f"Entity '{name}' not found!")
+        for entity_name in self.entities:
+            if entity_name == name:
+                return self.entities[entity_name]
+        raise Exception(f"Entity '{name}' not found!")
 
 
 
