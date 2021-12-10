@@ -2,6 +2,8 @@ import pickle
 
 import os
 import cloudpickle
+from functools import wraps
+import inspect
 
 # Simple persistency for built entities
 datasets = {}
@@ -27,13 +29,13 @@ class Layer:
             print(f"Environment file not found: {self.environment}")
 
     def log_parameter(self, metric, value):
-        print(f"\t{Layer.entity_context} > Parameter > {metric}:{value}")
+        print(f"\t> {Layer.entity_context} > Parameter > {metric}:{value}")
 
     def log_metric(self, metric, value):
-        print(f"\t{Layer.entity_context} > Metric >{metric}:{value}")
+        print(f"\t> {Layer.entity_context} > Metric >{metric}:{value}")
 
     def log(self, message):
-        print(f"\t{Layer.entity_context} > {message}")
+        print(f"\t> {Layer.entity_context} > {message}")
 
     def list_entities(self):
         for ds in self.entities:
@@ -90,7 +92,7 @@ class ModelDefinition:
         print(f'* Training {self.name}...')
         new_func = pickle.loads(self.pickled_func)
         for dependency in new_func._depends:
-            print("\t\tDependency: ", dependency)
+            print("\tDependency: ", dependency)
         result = new_func()
         models[self.name] = result
 
@@ -115,7 +117,8 @@ class DatasetDefinition:
         new_func = pickle.loads(self.pickled_func)
         print(f'* Building {self.name}...')
         for dependency in new_func._depends:
-            print("\t\tDependency: ", dependency)
+            print("\tDependency: ", dependency)
+
         result = new_func()
         datasets[self.name] = result
 
@@ -130,6 +133,48 @@ class DatasetDefinition:
 
 
 ## =========== DECORATORS ======================================================
+
+def assert_not_null(column_name):
+    def factory(func):
+        if not hasattr(func, '_tests'):
+            func._tests = []
+        func._tests.append(['assert_not_null', column_name])
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            res = func(*args, **kwargs)
+            test_result = f"assert_not_null('{column_name}')"
+            if not res[column_name].isnull().values.any():
+                print("\tTest SUCCESS: " + test_result)
+            else:
+                raise Exception("\tTest FAILED: " + test_result)
+            return res
+
+        return wrapper
+
+    return factory
+
+
+def assert_unique(column_name):
+    def factory(func):
+        if not hasattr(func, '_tests'):
+            func._tests = []
+        func._tests.append(['assert_unique', column_name])
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            res = func(*args, **kwargs)
+            test_result = f"assert_unique('{column_name}')"
+            if res[column_name].is_unique:
+                print("\tTest SUCCESS: " + test_result)
+            else:
+                raise Exception("\tTest FAILED: " + test_result)
+            return res
+
+        return wrapper
+
+    return factory
+
 
 def dataset(name, depends=[], fabric=None):
     def inner(func):

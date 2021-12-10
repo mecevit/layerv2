@@ -1,5 +1,5 @@
 import layersdk
-from layersdk import dataset, model, Layer, File, Dataset, SQL
+from layersdk import dataset, model, Layer, File, Dataset, SQL, assert_unique, assert_not_null
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -9,6 +9,8 @@ data_file = 'titanic.csv'
 
 
 # Create dataset from local file
+@assert_not_null('PassengerId')
+@assert_unique('PassengerId')
 @dataset('raw_passengers', depends=[File(data_file)])
 def read_and_clean_dataset():
     df = pd.read_csv(data_file)
@@ -49,18 +51,18 @@ def clean_age(data):
         return age
 
 
-@dataset('features', depends=[Dataset('raw_passengers')])
-def extract_features():
-    df = layer.get_dataset("raw_passengers").to_pandas()
-
-    df['Sex'] = df['Sex'].apply(clean_sex)
-    df['Age'] = df[['Age', 'Pclass']].apply(clean_age, axis=1)
-
-    df = df.drop(["PassengerId", "Name", "Cabin", "Ticket", "Embarked"], axis=1)
-
-    layer.log(f'Features: {list(df.columns)}')
-    layer.log(f'Total Count: {len(df)}')
-    return df
+# @dataset('features', depends=[Dataset('raw_passengers')])
+# def extract_features():
+#     df = layer.get_dataset("raw_passengers").to_pandas()
+#
+#     df['Sex'] = df['Sex'].apply(clean_sex)
+#     df['Age'] = df[['Age', 'Pclass']].apply(clean_age, axis=1)
+#
+#     df = df.drop(["PassengerId", "Name", "Cabin", "Ticket", "Embarked"], axis=1)
+#
+#     layer.log(f'Features: {list(df.columns)}')
+#     layer.log(f'Total Count: {len(df)}')
+#     return df
 
 
 @model(name='survival_model', depends=[Dataset('features')], fabric='f-small')
@@ -82,9 +84,11 @@ def train():
 
 # ++ init Layer
 layer = Layer(project_name="ltv_project", environment='requirements.txt')
+# read_and_clean_dataset()
 
 # ++ To run the whole project on Layer Infra
-layer.run([read_and_clean_dataset, extract_features, train])
+layer.run([read_and_clean_dataset])
+# layer.run([read_and_clean_dataset, extract_features, train])
 # layer.run([build_dummy, train, read_and_clean_dataset, extract_features])
 
 # ++ To train model on Layer infra
