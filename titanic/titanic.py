@@ -7,7 +7,7 @@ import pandas as pd
 
 data_file = 'titanic.csv'
 
-@dataset('raw_passengers')
+@dataset('raw_passengers', depends=[File(data_file)])
 def read_and_clean_dataset():
     df = pd.read_csv(data_file)
     layer.log(f"Total passengers: {len(df)}")
