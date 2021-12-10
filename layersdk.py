@@ -197,3 +197,11 @@ class Model:
 
     def __str__(self):
         return f"Model('{self.name}')"
+
+## =========== SOURCE DEFINITIONS ==============================================
+
+
+class Datasource:
+    def __init__(self, integration_name, table_name):
+        self.integration_name = integration_name
+        self.table_name = table_name

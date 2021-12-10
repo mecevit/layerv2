@@ -46,13 +46,11 @@ class App():
         self._yTrain = np.log(target)
 
     def _dummyCreate(self):
-        # Create dummy variables for the categorical features and handle the missing values
+        # Create dummy variables for the categorical features and handle
+        # the missing values
         self._df = pd.get_dummies(self._alldf)
         self._df.isnull().sum().sort_values(ascending=False)
         self._df = self._df.fillna(self._df.mean())
-
-    """
-    """
 
     def _pcaLassoRegr(self):
         pca = decomposition.PCA()

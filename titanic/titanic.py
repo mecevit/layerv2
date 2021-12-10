@@ -1,15 +1,25 @@
-from layersdk import dataset, model, Layer
+import layersdk
+from layersdk import dataset, model, Layer, File, Dataset
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
 
+data_file = 'titanic.csv'
 
-@dataset('raw_passengers')
+
+# Create dataset from local file
+@dataset('raw_passengers', depends=[File(data_file)])
 def read_and_clean_dataset():
-    df = pd.read_csv("titanic.csv")
+    df = pd.read_csv(data_file)
     layer.log(f"Total passengers: {len(df)}")
     return df
+
+
+# Create dataset from an integration
+# @dataset('raw_passengers')
+# def read_and_clean_dataset():
+#     return layersdk.Datasource('layer-public-datasets', 'titanic')
 
 
 def clean_sex(sex):
@@ -35,7 +45,7 @@ def clean_age(data):
         return age
 
 
-@dataset('features')
+@dataset('features', depends=[Dataset('raw_passengers')])
 def extract_features():
     df = layer.get_dataset("raw_passengers").to_pandas()
 
@@ -49,7 +59,7 @@ def extract_features():
     return df
 
 
-@model(name='survival_model')
+@model(name='survival_model', depends=[Dataset('features')])
 def train():
     df = layer.get_dataset("features").to_pandas()
     layer.log(f"Training data count: {len(df)}")
@@ -69,10 +79,8 @@ def train():
 # ++ init Layer
 layer = Layer(project_name="ltv_project", environment='requirements.txt')
 
-
 # ++ To run the whole project on Layer Infra
-layer.run([read_and_clean_dataset, extract_features])
-layer.run([train])
+layer.run([read_and_clean_dataset, extract_features, train])
 # layer.run([build_dummy, train, read_and_clean_dataset, extract_features])
 
 # ++ To train model on Layer infra
