@@ -14,9 +14,10 @@ class Layer:
     entities = {}
     entity_context = None
 
-    def __init__(self, project_name, environment=None):
+    def __init__(self, project_name, environment=None, fabric=None):
         self.project_name = project_name
         self.environment = environment
+        self.fabric = fabric
 
     def setup(self):
         if not self.environment:
@@ -133,6 +134,31 @@ class DatasetDefinition:
 
 
 ## =========== DECORATORS ======================================================
+
+def assert_valid_values(column_name, accepted_values):
+    def factory(func):
+        if not hasattr(func, '_tests'):
+            func._tests = []
+        func._tests.append(
+            ['assert_valid_values', column_name, accepted_values])
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            res = func(*args, **kwargs)
+            test_result = f"assert_valid_values('{column_name}', {accepted_values})"
+
+            unique_values = res[column_name].unique()
+            for value in unique_values:
+                if not value in accepted_values:
+                    raise Exception(f"\tTest FAILED: {test_result}. Value [{value}] not exists. Unique values = {unique_values}")
+
+            print("\tTest SUCCESS: " + test_result)
+            return res
+
+        return wrapper
+
+    return factory
+
 
 def assert_not_null(column_name):
     def factory(func):
