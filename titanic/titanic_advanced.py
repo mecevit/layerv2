@@ -94,8 +94,14 @@ def get_passenger_features(df):
     return df[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare']]
 
 
-def test_survival_probability(model):
-    # Changing gender from female to male should decrease survival probability.
+def test_survival_probability(model:RandomForestClassifier) -> bool:
+    """
+    We have 2 directional expectations here:
+    - Changing gender from female to male should decrease survival probability.
+    - Changing Pclass from 1 to 3 should decrease survival probability.
+    :param model: Trained survival model
+    :return:
+    """
     p2 = dummy_passengers()
 
     # Get original survival probability of passenger 2
@@ -110,7 +116,15 @@ def test_survival_probability(model):
     X = get_passenger_features(test_df)
     p2_male_prob = model.predict_proba(X)[0][1]  # 0.53
 
-    return p2_male_prob < p2_prob
+    # Change class from 1 to 3
+    p2_class = p2.copy()
+    p2_class['Pclass'] = 3
+    test_df = pd.DataFrame.from_dict([p2_class], orient='columns')
+    X = get_passenger_features(test_df)
+    p2_class_prob = model.predict_proba(X)[0][1]  # 0.0
+
+    # Changing gender from female to male should decrease survival probability.
+    return p2_male_prob < p2_prob and p2_class_prob < p2_prob
 
 
 @assert_true(test_survival_probability)

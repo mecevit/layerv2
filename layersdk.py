@@ -30,10 +30,10 @@ class Layer:
             print(f"Environment file not found: {self.environment}")
 
     def log_parameter(self, metric, value):
-        print(f"\t> {Layer.entity_context} > Parameter > {metric}:{value}")
+        print(f"\t> {Layer.entity_context} > Parameter [{metric}:{value}]")
 
     def log_metric(self, metric, value):
-        print(f"\t> {Layer.entity_context} > Metric >{metric}:{value}")
+        print(f"\t> {Layer.entity_context} > Metric [{metric}:{value}]")
 
     def log(self, message):
         print(f"\t> {Layer.entity_context} > {message}")
