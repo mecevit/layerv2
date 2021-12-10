@@ -1,6 +1,8 @@
 import pickle
 
 import os
+from abc import abstractmethod
+
 import cloudpickle
 from functools import wraps
 import inspect
@@ -81,7 +83,7 @@ class Layer:
         raise Exception(f"Entity '{name}' not found!")
 
 
-class ModelDefinition:
+class Definition:
 
     def __init__(self, func):
         if func:
@@ -89,13 +91,28 @@ class ModelDefinition:
             self.pickled_func = cloudpickle.dumps(func)
             self.func = func
 
+    @abstractmethod
     def run(self):
-        print(f'* Training {self.name}...')
         new_func = pickle.loads(self.pickled_func)
         for dependency in new_func._depends:
-            print("\tDependency: ", dependency)
+            if isinstance(dependency, File) or isinstance(dependency, Directory):
+                if os.path.exists(dependency.path):
+                    print(f"\tDependency: {dependency}")
+                else:
+                    raise Exception("File not found:"+ dependency.path)
+            else:
+                print("\tDependency: ", dependency)
+
         result = new_func()
-        models[self.name] = result
+        return result
+
+
+class ModelDefinition(Definition):
+
+    def run(self):
+        print(f'* Training {self.name}...')
+        res = super().run()
+        models[self.name] = res
 
     def get_train(self):
         return self.get_entity()
@@ -107,20 +124,11 @@ class ModelDefinition:
             raise Exception(f"Entity {self.name} is not built!")
 
 
-class DatasetDefinition:
-    def __init__(self, func):
-        if func:
-            self.name = func._name
-            self.pickled_func = cloudpickle.dumps(func)
-            self.func = func
+class DatasetDefinition(Definition):
 
     def run(self):
-        new_func = pickle.loads(self.pickled_func)
         print(f'* Building {self.name}...')
-        for dependency in new_func._depends:
-            print("\tDependency: ", dependency)
-
-        result = new_func()
+        result = super().run()
         datasets[self.name] = result
 
     def to_pandas(self):

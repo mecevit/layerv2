@@ -80,6 +80,3 @@ layer.run([read_and_clean_dataset, extract_features, train])
 # ++ To debug the code locally, just call the function:
 # train()
 # extract_features()
-
-# read_and_clean_dataset()
-# train()

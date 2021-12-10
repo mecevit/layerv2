@@ -21,6 +21,7 @@ def check_for_fare(df):
 def read_and_clean_dataset():
     df = pd.read_csv(data_file)
     layer.log(f"Total passengers: {len(df)}")
+    # df = df.append(df*2)
     return df
 
 
