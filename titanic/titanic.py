@@ -1,5 +1,6 @@
 import layersdk
-from layersdk import dataset, model, Layer, File, Dataset, SQL, assert_unique, assert_not_null
+from layersdk import dataset, model, Layer, File, Dataset, SQL, assert_unique, \
+    assert_not_null
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -9,7 +10,7 @@ data_file = 'titanic.csv'
 
 
 # Create dataset from local file
-@assert_not_null('PassengerId')
+@assert_not_null('Name')
 @assert_unique('PassengerId')
 @dataset('raw_passengers', depends=[File(data_file)])
 def read_and_clean_dataset():
