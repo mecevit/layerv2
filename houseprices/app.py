@@ -1,7 +1,7 @@
 # Original Repo:
 # https://github.com/tiwari91/Housing-Prices
 
-from layersdk import Layer, dataset, model
+from layersdk import Layer, dataset, model, File, Dataset
 
 import pandas as pd
 import numpy as np
@@ -11,19 +11,17 @@ from sklearn import decomposition
 
 
 class App():
-    def __init__(self, file_train, file_test, layer: Layer):
-        self.file_train = file_train
-        self.file_test = file_test
+    def __init__(self, layer: Layer):
         self.layer = layer
 
-    @dataset("train")
+    @dataset("train", depends=[File('./train.csv')])
     def create_training_data(self):
-        df = pd.read_csv(self.file_train, index_col=0)
+        df = pd.read_csv('train.csv', index_col=0)
         return df
 
-    @dataset("test")
+    @dataset("test", depends=[File('./test.csv')])
     def create_test_data(self):
-        return pd.read_csv(self.file_test, index_col=0)
+        return pd.read_csv('test.csv', index_col=0)
 
     def _normalizeData(self, Numeric_columns):
         # Function to normalize
@@ -74,7 +72,7 @@ class App():
 
         return y_lasso
 
-    @model("house_price_predictor")
+    @model("house_price_predictor", depends=[Dataset('train'), Dataset('test')])
     def train(self):
         self._train_df = layer.get_dataset("train").to_pandas()
         self._test_df = layer.get_dataset("test").to_pandas()
@@ -98,9 +96,10 @@ class App():
         y_final = self._pcaLassoRegr()
 
 
-layer = Layer(project_name="house_prices")
+layer = Layer(project_name="house_prices", environment="requirements.txt")
 
-app = App('train.csv', 'test.csv', layer)
+app = App(layer)
+
 layer.run(
     [
         app.create_training_data,
