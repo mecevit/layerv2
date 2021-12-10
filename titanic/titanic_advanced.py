@@ -7,11 +7,32 @@ import pandas as pd
 
 data_file = 'titanic.csv'
 
-@dataset('raw_passengers')
+
+def check_for_fare(df):
+    return df.Fare.max() <= 520 and df.Fare.min() >= 0
+
+
+# Create dataset from local file
+@assert_true(check_for_fare)
+@assert_not_null('Name')
+@assert_unique('PassengerId')
+@assert_valid_values('Sex', ['male', 'female'])
+@dataset('raw_passengers', depends=[File(data_file)])
 def read_and_clean_dataset():
     df = pd.read_csv(data_file)
     layer.log(f"Total passengers: {len(df)}")
     return df
+
+
+# Create dataset with sql
+# @dataset('raw_passengers')
+# def read_and_clean_dataset():
+#     return SQL(f'select * from titanic')
+
+# Create dataset from an integration
+# @dataset('raw_passengers')
+# def read_and_clean_dataset():
+#     return layersdk.Datasource('layer-public-datasets', 'titanic')
 
 
 def clean_sex(sex):
@@ -37,7 +58,7 @@ def clean_age(data):
         return age
 
 
-@dataset('features')
+@dataset('features', depends=[Dataset('raw_passengers')])
 def extract_features():
     df = layer.get_dataset("raw_passengers").to_pandas()
 
@@ -50,7 +71,14 @@ def extract_features():
     layer.log(f'Total Count: {len(df)}')
     return df
 
-@model(name='survival_model')
+def test_survival_probability(model):
+    # Changing gender from female to male should decrease survival probability.
+    print(model)
+    return True
+
+
+@assert_true(test_survival_probability)
+@model(name='survival_model', depends=[Dataset('features')], fabric='f-small')
 def train():
     df = layer.get_dataset("features").to_pandas()
     layer.log(f"Training data count: {len(df)}")
