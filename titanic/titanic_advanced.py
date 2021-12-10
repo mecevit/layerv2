@@ -99,6 +99,10 @@ def test_survival_probability(model:RandomForestClassifier) -> bool:
     We have 2 directional expectations here:
     - Changing gender from female to male should decrease survival probability.
     - Changing Pclass from 1 to 3 should decrease survival probability.
+
+    Reference:
+    https://github.com/eugeneyan/testing-ml
+
     :param model: Trained survival model
     :return:
     """
