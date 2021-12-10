@@ -131,7 +131,7 @@ class DatasetDefinition:
 
 ## =========== DECORATORS ======================================================
 
-def dataset(name, depends=[]):
+def dataset(name, depends=[], fabric=None):
     def inner(func):
         def wrapped(*args, **kwargs):
             Layer.entity_context = name
@@ -142,13 +142,15 @@ def dataset(name, depends=[]):
         wrapped._type = "dataset"
         wrapped._name = name
         wrapped._depends = depends
+        wrapped._transformation_type = type
+        wrapped._fabric = fabric
 
         return wrapped
 
     return inner
 
 
-def model(name, depends=[]):
+def model(name, depends=[], fabric=None):
     def inner(func):
         def wrapped(*args, **kwargs):
             Layer.entity_context = name
@@ -198,6 +200,7 @@ class Model:
     def __str__(self):
         return f"Model('{self.name}')"
 
+
 ## =========== SOURCE DEFINITIONS ==============================================
 
 
@@ -205,3 +208,8 @@ class Datasource:
     def __init__(self, integration_name, table_name):
         self.integration_name = integration_name
         self.table_name = table_name
+
+
+class SQL:
+    def __init__(self, query):
+        self.query

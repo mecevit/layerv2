@@ -1,5 +1,5 @@
 import layersdk
-from layersdk import dataset, model, Layer, File, Dataset
+from layersdk import dataset, model, Layer, File, Dataset, SQL
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -15,6 +15,10 @@ def read_and_clean_dataset():
     layer.log(f"Total passengers: {len(df)}")
     return df
 
+# Create dataset with sql
+# @dataset('raw_passengers')
+# def read_and_clean_dataset():
+#     return SQL(f'select * from titanic')
 
 # Create dataset from an integration
 # @dataset('raw_passengers')
@@ -59,7 +63,7 @@ def extract_features():
     return df
 
 
-@model(name='survival_model', depends=[Dataset('features')])
+@model(name='survival_model', depends=[Dataset('features')], fabric='f-small')
 def train():
     df = layer.get_dataset("features").to_pandas()
     layer.log(f"Training data count: {len(df)}")
