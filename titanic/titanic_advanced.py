@@ -71,10 +71,46 @@ def extract_features():
     layer.log(f'Total Count: {len(df)}')
     return df
 
+
+def dummy_passengers():
+    # Based on passenger 2 (high passenger class female)
+    passenger2 = {'PassengerId': 2,
+                  'Pclass': 1,
+                  'Name': ' Mrs. John',
+                  'Sex': 'female',
+                  'Age': 38.0,
+                  'SibSp': 1,
+                  'Parch': 0,
+                  'Ticket': 'PC 17599',
+                  'Fare': 71.2833,
+                  'Embarked': 'C'}
+
+    return passenger2
+
+
+def get_passenger_features(df):
+    df['Sex'] = df['Sex'].apply(clean_sex)
+    df['Age'] = df[['Age', 'Pclass']].apply(clean_age, axis=1)
+    return df[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare']]
+
+
 def test_survival_probability(model):
     # Changing gender from female to male should decrease survival probability.
-    print(model)
-    return True
+    p2 = dummy_passengers()
+
+    # Get original survival probability of passenger 2
+    test_df = pd.DataFrame.from_dict([p2], orient='columns')
+    X = get_passenger_features(test_df)
+    p2_prob = model.predict_proba(X)[0][1]  # 0.99
+
+    # Change gender from female to male
+    p2_male = p2.copy()
+    p2_male['Sex'] = 'male'
+    test_df = pd.DataFrame.from_dict([p2_male], orient='columns')
+    X = get_passenger_features(test_df)
+    p2_male_prob = model.predict_proba(X)[0][1]  # 0.53
+
+    return p2_male_prob < p2_prob
 
 
 @assert_true(test_survival_probability)
