@@ -2,7 +2,7 @@ import numpy as np
 
 import layersdk
 from layersdk import dataset, model, Layer, File, Dataset, SQL, assert_unique, \
-    assert_not_null, assert_valid_values
+    assert_not_null, assert_valid_values, assert_true
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -11,7 +11,12 @@ import pandas as pd
 data_file = 'titanic.csv'
 
 
+def check_for_fare(df):
+    return df.Fare.max() <= 520 and df.Fare.min() >= 0
+
+
 # Create dataset from local file
+@assert_true(check_for_fare)
 @assert_not_null('Name')
 @assert_unique('PassengerId')
 @assert_valid_values('Sex', ['male', 'female'])
@@ -89,12 +94,10 @@ def train():
 
 # ++ init Layer
 layer = Layer(project_name="ltv_project", environment='requirements.txt')
-# read_and_clean_dataset()
+# df = read_and_clean_dataset()
 
 # ++ To run the whole project on Layer Infra
-# layer.run([read_and_clean_dataset])
 layer.run([read_and_clean_dataset, extract_features, train])
-# layer.run([build_dummy, train, read_and_clean_dataset, extract_features])
 
 # ++ To train model on Layer infra
 # layer.run([train])

@@ -135,6 +135,27 @@ class DatasetDefinition:
 
 ## =========== DECORATORS ======================================================
 
+def assert_true(assert_function):
+    def factory(func):
+        if not hasattr(func, '_tests'):
+            func._tests = []
+        func._tests.append(
+            ['assert_true', assert_function])
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            res = func(*args, **kwargs)
+            test_result = f"assert_true({assert_function.__name__})"
+            if assert_function(res):
+                print("\tTest SUCCESS: " + test_result)
+            else:
+                raise Exception("\tTest FAILED: " + test_result)
+            return res
+
+        return wrapper
+
+    return factory
+
 def assert_valid_values(column_name, accepted_values):
     def factory(func):
         if not hasattr(func, '_tests'):
